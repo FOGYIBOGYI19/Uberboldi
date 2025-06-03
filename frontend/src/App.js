@@ -158,38 +158,6 @@ function UserInterface({ currentLang, t }) {
         </div>
       </div>
 
-      {/* Recent Trips */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-xl font-bold text-gray-800 mb-4">{t.recentTrips}</h3>
-        <div className="space-y-3">
-          {trips.slice(0, 5).map((trip) => (
-            <div key={trip.id} className="border rounded-lg p-4">
-              <div className="flex justify-between items-start">
-                <div>
-                  <div className="font-medium text-gray-800">
-                    {trip.start_location.address || 'Start'} → {trip.end_location.address || 'End'}
-                  </div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    {trip.distance_km.toFixed(1)} km • {trip.passengers.join(', ')}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {trip.payment_method === 'card' ? t.card : t.cash} • {new Date(trip.created_at).toLocaleDateString()}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-green-600">
-                    {trip.cost_per_person.toFixed(0)} HUF/{currentLang === 'hu' ? 'fő' : 'person'}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {t.totalCostLabel}: {trip.total_cost.toFixed(0)} HUF
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Create Trip Modal */}
       {showCreateTrip && (
         <CreateTripModal
