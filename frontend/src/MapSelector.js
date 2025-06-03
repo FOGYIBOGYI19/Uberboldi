@@ -45,8 +45,8 @@ function MapSelector({ startLocation, endLocation, onLocationUpdate, translation
   const [currentStep, setCurrentStep] = useState('start'); // 'start' or 'end'
   const mapRef = useRef();
   
-  // Default center to Budapest, Hungary
-  const defaultCenter = [47.4979, 19.0402];
+  // Default center to Tata, Hungary
+  const defaultCenter = [47.6667, 18.3167];
   const zoom = 13;
 
   // Calculate distance between two points using Haversine formula
