@@ -230,12 +230,13 @@ def main():
     if admin_login_success:
         admin_settings_success, admin_settings = tester.test_get_admin_settings()
     
-    # Test 4: Create a trip
-    start_location = {"address": "Home", "lat": 40.7128, "lng": -74.0060}
-    end_location = {"address": "Work", "lat": 40.7138, "lng": -74.0070}
-    distance_km = 15.5
-    passengers = ["John", "Jane"]
-    payment_method = "card"
+    # Test 4: Create a trip with Budapest locations (for map testing)
+    # Using coordinates in Budapest, Hungary
+    start_location = {"address": "Budapest, Keleti pályaudvar", "lat": 47.5005, "lng": 19.0831}
+    end_location = {"address": "Budapest, Nyugati pályaudvar", "lat": 47.5103, "lng": 19.0559}
+    distance_km = 3.5
+    passengers = ["János", "Petra"]  # Hungarian names
+    payment_method = "cash"
     
     trip_success, trip = tester.test_create_trip(
         start_location, 
@@ -246,13 +247,32 @@ def main():
     )
     
     if not trip_success:
-        print("❌ Failed to create trip")
+        print("❌ Failed to create trip with Budapest locations")
+    else:
+        print("✅ Successfully created trip with Budapest locations")
+        print(f"   Start: {start_location['address']}")
+        print(f"   End: {end_location['address']}")
+        print(f"   Distance: {distance_km} km")
+        print(f"   Passengers: {', '.join(passengers)}")
+        print(f"   Payment: {payment_method}")
+        print(f"   Cost: {trip.get('total_cost')} HUF")
     
     # Test 5: Get all trips
     trips_success, trips = tester.test_get_trips()
     
     # Test 6: Get passenger summary
     summary_success, summary = tester.test_get_passenger_summary()
+    
+    # Check if Hungarian names are in the summary
+    if summary_success:
+        hungarian_names_found = []
+        for name in ["János", "Petra"]:
+            if name in summary:
+                hungarian_names_found.append(name)
+                print(f"✅ Found Hungarian name '{name}' in passenger summary")
+        
+        if not hungarian_names_found:
+            print("❌ No Hungarian names found in passenger summary")
     
     # Admin tests (if logged in)
     if admin_login_success:
