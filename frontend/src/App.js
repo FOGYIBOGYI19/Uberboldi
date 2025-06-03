@@ -136,25 +136,59 @@ function UserInterface({ currentLang, t }) {
         </div>
       </div>
 
-      {/* Passenger Summary */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-xl font-bold text-gray-800 mb-4">{t.friendSummary}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Object.entries(passengerSummary).map(([name, data]) => (
-            <div key={name} className="bg-gray-50 rounded-lg p-4">
-              <h4 className="font-semibold text-gray-800">{name}</h4>
-              <div className="text-sm text-gray-600 space-y-1 mt-2">
-                <div>{t.totalDistance}: {data.total_distance.toFixed(1)} km</div>
-                <div>{t.totalCostLabel}: {data.total_cost.toFixed(0)} HUF</div>
-                <div>{t.trips}: {data.trip_count}</div>
-                {data.unpaid_cost > 0 && (
-                  <div className="text-red-600 font-medium">
-                    {t.unpaid}: {data.unpaid_cost.toFixed(0)} HUF
-                  </div>
-                )}
-              </div>
+      {/* UberBoldi Car Interface */}
+      <div className="bg-white rounded-xl shadow-lg p-8">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🚗</div>
+          <h3 className="text-2xl font-bold text-gray-800 mb-2">UberBoldi</h3>
+          <p className="text-gray-600 mb-6">
+            {currentLang === 'hu' 
+              ? 'Egyszerű utazástervezés barátokkal' 
+              : 'Simple trip planning with friends'}
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+            <div className="bg-blue-50 rounded-lg p-4">
+              <div className="text-2xl mb-2">📍</div>
+              <h4 className="font-semibold text-gray-800">
+                {currentLang === 'hu' ? 'Hely kiválasztás' : 'Select Location'}
+              </h4>
+              <p className="text-sm text-gray-600 mt-1">
+                {currentLang === 'hu' 
+                  ? 'Térképen vagy manuálisan' 
+                  : 'On map or manually'}
+              </p>
             </div>
-          ))}
+            <div className="bg-green-50 rounded-lg p-4">
+              <div className="text-2xl mb-2">💰</div>
+              <h4 className="font-semibold text-gray-800">
+                {currentLang === 'hu' ? 'Automatikus számítás' : 'Auto Calculate'}
+              </h4>
+              <p className="text-sm text-gray-600 mt-1">
+                {currentLang === 'hu' 
+                  ? 'Költségek és távolság' 
+                  : 'Costs and distance'}
+              </p>
+            </div>
+            <div className="bg-purple-50 rounded-lg p-4">
+              <div className="text-2xl mb-2">👥</div>
+              <h4 className="font-semibold text-gray-800">
+                {currentLang === 'hu' ? 'Barátok hozzáadása' : 'Add Friends'}
+              </h4>
+              <p className="text-sm text-gray-600 mt-1">
+                {currentLang === 'hu' 
+                  ? 'Egyszerű névlista' 
+                  : 'Simple name list'}
+              </p>
+            </div>
+          </div>
+          <div className="mt-6">
+            <button
+              onClick={() => setShowCreateTrip(true)}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-full hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 font-medium text-lg shadow-lg"
+            >
+              {currentLang === 'hu' ? '🚀 Utazás indítása' : '🚀 Start Journey'}
+            </button>
+          </div>
         </div>
       </div>
 
