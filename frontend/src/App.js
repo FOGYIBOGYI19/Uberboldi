@@ -565,6 +565,25 @@ function AdminDashboard({ setIsAuthenticated, currentLang, t }) {
     }
   };
 
+  const deleteTrip = async (tripId) => {
+    if (window.confirm(t.confirmDelete)) {
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/admin/trip/${tripId}`, {
+          method: 'DELETE'
+        });
+
+        if (response.ok) {
+          fetchTrips();
+        } else {
+          alert('Error deleting trip');
+        }
+      } catch (error) {
+        console.error('Error deleting trip:', error);
+        alert('Error deleting trip');
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -590,6 +609,28 @@ function AdminDashboard({ setIsAuthenticated, currentLang, t }) {
               {t.logout}
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Friend Summary - Admin Only */}
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h3 className="text-xl font-bold text-gray-800 mb-4">{t.friendSummary}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Object.entries(passengerSummary).map(([name, data]) => (
+            <div key={name} className="bg-gray-50 rounded-lg p-4">
+              <h4 className="font-semibold text-gray-800">{name}</h4>
+              <div className="text-sm text-gray-600 space-y-1 mt-2">
+                <div>{t.totalDistance}: {data.total_distance.toFixed(1)} km</div>
+                <div>{t.totalCostLabel}: {data.total_cost.toFixed(0)} HUF</div>
+                <div>{t.trips}: {data.trip_count}</div>
+                {data.unpaid_cost > 0 && (
+                  <div className="text-red-600 font-medium">
+                    {t.unpaid}: {data.unpaid_cost.toFixed(0)} HUF
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
