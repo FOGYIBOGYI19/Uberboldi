@@ -1,75 +1,179 @@
-from fastapi import FastAPI, APIRouter
-from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List, Optional
 import os
-import logging
-from pathlib import Path
-from pydantic import BaseModel, Field
-from typing import List
 import uuid
+from pymongo import MongoClient
 from datetime import datetime
 
-
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
-
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
-
-# Create the main app without a prefix
 app = FastAPI()
 
-# Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
-
-
-# Define Models
-class StatusCheck(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
-
-class StatusCheckCreate(BaseModel):
-    client_name: str
-
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.dict()
-    status_obj = StatusCheck(**status_dict)
-    _ = await db.status_checks.insert_one(status_obj.dict())
-    return status_obj
-
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    status_checks = await db.status_checks.find().to_list(1000)
-    return [StatusCheck(**status_check) for status_check in status_checks]
-
-# Include the router in the main app
-app.include_router(api_router)
-
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# MongoDB connection
+MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017/')
+client = MongoClient(MONGO_URL)
+db = client.carpooling_app
 
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
+# Pydantic models
+class AdminSettings(BaseModel):
+    rate_per_km: float
+    payment_info: str
+    admin_password: str
+
+class Trip(BaseModel):
+    id: Optional[str] = None
+    start_location: dict  # {lat, lng, address}
+    end_location: dict   # {lat, lng, address}
+    distance_km: float
+    passengers: List[str]
+    payment_method: str  # "card" or "cash"
+    cost_per_person: float
+    total_cost: float
+    created_at: Optional[datetime] = None
+    paid: Optional[bool] = False
+
+class TripCreate(BaseModel):
+    start_location: dict
+    end_location: dict
+    distance_km: float
+    passengers: List[str]
+    payment_method: str
+
+# Initialize admin settings if not exists
+@app.on_event("startup")
+async def startup_event():
+    settings = db.admin_settings.find_one({"_id": "main"})
+    if not settings:
+        db.admin_settings.insert_one({
+            "_id": "main",
+            "rate_per_km": 0.5,  # Default rate
+            "payment_info": "Card: 1234-5678-9012-3456 | Bank: John Doe",
+            "admin_password": "admin123"
+        })
+
+# Admin endpoints
+@app.post("/api/admin/login")
+async def admin_login(password: dict):
+    settings = db.admin_settings.find_one({"_id": "main"})
+    if settings and settings["admin_password"] == password["password"]:
+        return {"success": True, "message": "Admin authenticated"}
+    raise HTTPException(status_code=401, detail="Invalid password")
+
+@app.get("/api/admin/settings")
+async def get_admin_settings():
+    settings = db.admin_settings.find_one({"_id": "main"})
+    if settings:
+        return {
+            "rate_per_km": settings["rate_per_km"],
+            "payment_info": settings["payment_info"]
+        }
+    raise HTTPException(status_code=404, detail="Settings not found")
+
+@app.put("/api/admin/settings")
+async def update_admin_settings(settings: AdminSettings):
+    result = db.admin_settings.update_one(
+        {"_id": "main"},
+        {"$set": {
+            "rate_per_km": settings.rate_per_km,
+            "payment_info": settings.payment_info,
+            "admin_password": settings.admin_password
+        }}
+    )
+    if result.modified_count:
+        return {"message": "Settings updated successfully"}
+    raise HTTPException(status_code=404, detail="Settings not found")
+
+@app.get("/api/admin/trips")
+async def get_all_trips():
+    trips = list(db.trips.find({}, {"_id": 0}))
+    return trips
+
+@app.put("/api/admin/trip/{trip_id}/paid")
+async def mark_trip_paid(trip_id: str, paid: dict):
+    result = db.trips.update_one(
+        {"id": trip_id},
+        {"$set": {"paid": paid["paid"]}}
+    )
+    if result.modified_count:
+        return {"message": "Trip payment status updated"}
+    raise HTTPException(status_code=404, detail="Trip not found")
+
+# User endpoints
+@app.get("/api/settings")
+async def get_public_settings():
+    settings = db.admin_settings.find_one({"_id": "main"})
+    if settings:
+        return {
+            "rate_per_km": settings["rate_per_km"],
+            "payment_info": settings["payment_info"]
+        }
+    raise HTTPException(status_code=404, detail="Settings not found")
+
+@app.post("/api/trips")
+async def create_trip(trip: TripCreate):
+    settings = db.admin_settings.find_one({"_id": "main"})
+    if not settings:
+        raise HTTPException(status_code=500, detail="System not configured")
+    
+    rate = settings["rate_per_km"]
+    total_cost = trip.distance_km * rate
+    cost_per_person = total_cost / len(trip.passengers) if trip.passengers else total_cost
+    
+    trip_data = {
+        "id": str(uuid.uuid4()),
+        "start_location": trip.start_location,
+        "end_location": trip.end_location,
+        "distance_km": trip.distance_km,
+        "passengers": trip.passengers,
+        "payment_method": trip.payment_method,
+        "cost_per_person": cost_per_person,
+        "total_cost": total_cost,
+        "created_at": datetime.now(),
+        "paid": False
+    }
+    
+    db.trips.insert_one(trip_data)
+    trip_data.pop("_id", None)  # Remove MongoDB _id
+    return trip_data
+
+@app.get("/api/trips")
+async def get_trips():
+    trips = list(db.trips.find({}, {"_id": 0}).sort("created_at", -1))
+    return trips
+
+@app.get("/api/passengers/summary")
+async def get_passenger_summary():
+    trips = list(db.trips.find({}, {"_id": 0}))
+    summary = {}
+    
+    for trip in trips:
+        for passenger in trip["passengers"]:
+            if passenger not in summary:
+                summary[passenger] = {
+                    "total_distance": 0,
+                    "total_cost": 0,
+                    "trip_count": 0,
+                    "unpaid_cost": 0
+                }
+            
+            summary[passenger]["total_distance"] += trip["distance_km"]
+            summary[passenger]["total_cost"] += trip["cost_per_person"]
+            summary[passenger]["trip_count"] += 1
+            
+            if not trip["paid"]:
+                summary[passenger]["unpaid_cost"] += trip["cost_per_person"]
+    
+    return summary
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8001)
