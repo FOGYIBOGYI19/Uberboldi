@@ -52,6 +52,8 @@ export const translations = {
     allTrips: "Összes utazás",
     paid: "Fizetve",
     unpaidStatus: "Fizetetlen",
+    delete: "Törlés",
+    confirmDelete: "Biztosan törölni szeretnéd ezt az utazást?",
     
     // Settings
     adminSettings: "Admin beállítások",
