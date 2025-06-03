@@ -504,10 +504,12 @@ function AdminDashboard({ setIsAuthenticated, currentLang, t }) {
   const [settings, setSettings] = useState(null);
   const [trips, setTrips] = useState([]);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [passengerSummary, setPassengerSummary] = useState({});
 
   useEffect(() => {
     fetchSettings();
     fetchTrips();
+    fetchPassengerSummary();
   }, []);
 
   const fetchSettings = async () => {
@@ -527,6 +529,16 @@ function AdminDashboard({ setIsAuthenticated, currentLang, t }) {
       setTrips(data);
     } catch (error) {
       console.error('Error fetching trips:', error);
+    }
+  };
+
+  const fetchPassengerSummary = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/passengers/summary`);
+      const data = await response.json();
+      setPassengerSummary(data);
+    } catch (error) {
+      console.error('Error fetching passenger summary:', error);
     }
   };
 
@@ -555,25 +567,7 @@ function AdminDashboard({ setIsAuthenticated, currentLang, t }) {
 
         if (response.ok) {
           fetchTrips();
-        } else {
-          alert('Error deleting trip');
-        }
-      } catch (error) {
-        console.error('Error deleting trip:', error);
-        alert('Error deleting trip');
-      }
-    }
-  };
-
-  const deleteTrip = async (tripId) => {
-    if (window.confirm(t.confirmDelete)) {
-      try {
-        const response = await fetch(`${BACKEND_URL}/api/admin/trip/${tripId}`, {
-          method: 'DELETE'
-        });
-
-        if (response.ok) {
-          fetchTrips();
+          fetchPassengerSummary(); // Refresh summary after deletion
         } else {
           alert('Error deleting trip');
         }
