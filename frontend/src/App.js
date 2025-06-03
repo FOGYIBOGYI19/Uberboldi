@@ -324,8 +324,8 @@ function CreateTripModal({ settings, onClose, onTripCreated }) {
           {/* Cost Preview */}
           <div className="bg-blue-50 rounded-lg p-3">
             <div className="text-sm text-gray-600">
-              <div>Total Cost: ${estimatedCost}</div>
-              <div>Cost per person: ${costPerPerson}</div>
+              <div>Total Cost: {estimatedCost} HUF</div>
+              <div>Cost per person: {costPerPerson} HUF</div>
               {paymentMethod === 'card' && settings && (
                 <div className="mt-2 text-xs text-blue-600">
                   Payment Info: {settings.payment_info}
