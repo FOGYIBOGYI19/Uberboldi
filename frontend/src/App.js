@@ -511,10 +511,10 @@ function AdminDashboard({ setIsAuthenticated }) {
                 </div>
                 <div className="text-right mr-4">
                   <div className="font-bold text-green-600">
-                    ${trip.cost_per_person.toFixed(2)}/person
+                    {trip.cost_per_person.toFixed(0)} HUF/person
                   </div>
                   <div className="text-sm text-gray-500">
-                    Total: ${trip.total_cost.toFixed(2)}
+                    Total: {trip.total_cost.toFixed(0)} HUF
                   </div>
                 </div>
                 <button
