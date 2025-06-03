@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import MapSelector from './MapSelector';
+import { translations } from './translations';
 import './App.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
@@ -6,6 +8,9 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001'
 function App() {
   const [currentView, setCurrentView] = useState('user'); // 'user' or 'admin'
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [currentLang, setCurrentLang] = useState('hu'); // 'hu' or 'en'
+  
+  const t = translations[currentLang];
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -13,27 +18,41 @@ function App() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center h-16">
             <h1 className="text-xl font-bold text-gray-800">🚗 Carpool Tracker</h1>
-            <div className="flex space-x-4">
-              <button
-                onClick={() => setCurrentView('user')}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  currentView === 'user' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                User View
-              </button>
-              <button
-                onClick={() => setCurrentView('admin')}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  currentView === 'admin' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                Admin
-              </button>
+            <div className="flex items-center space-x-4">
+              {/* Language Toggle */}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">{t.language}:</span>
+                <button
+                  onClick={() => setCurrentLang(currentLang === 'hu' ? 'en' : 'hu')}
+                  className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  {currentLang === 'hu' ? 'EN' : 'HU'}
+                </button>
+              </div>
+              
+              {/* View Toggle */}
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setCurrentView('user')}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    currentView === 'user' 
+                      ? 'bg-blue-600 text-white' 
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {t.userView}
+                </button>
+                <button
+                  onClick={() => setCurrentView('admin')}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    currentView === 'admin' 
+                      ? 'bg-blue-600 text-white' 
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {t.admin}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -41,11 +60,13 @@ function App() {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         {currentView === 'user' ? (
-          <UserInterface />
+          <UserInterface currentLang={currentLang} t={t} />
         ) : (
           <AdminInterface 
             isAuthenticated={isAdminAuthenticated}
             setIsAuthenticated={setIsAdminAuthenticated}
+            currentLang={currentLang}
+            t={t}
           />
         )}
       </main>
@@ -53,7 +74,7 @@ function App() {
   );
 }
 
-function UserInterface() {
+function UserInterface({ currentLang, t }) {
   const [trips, setTrips] = useState([]);
   const [settings, setSettings] = useState(null);
   const [showCreateTrip, setShowCreateTrip] = useState(false);
@@ -101,34 +122,34 @@ function UserInterface() {
       <div className="bg-white rounded-xl shadow-lg p-6">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">Plan Your Trip</h2>
+            <h2 className="text-2xl font-bold text-gray-800">{t.planTrip}</h2>
             <p className="text-gray-600 mt-1">
-              Current rate: {settings?.rate_per_km || 0} HUF/km
+              {t.currentRate}: {settings?.rate_per_km || 0} HUF/km
             </p>
           </div>
           <button
             onClick={() => setShowCreateTrip(true)}
             className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
           >
-            + New Trip
+            {t.newTrip}
           </button>
         </div>
       </div>
 
       {/* Passenger Summary */}
       <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-xl font-bold text-gray-800 mb-4">Friend Summary</h3>
+        <h3 className="text-xl font-bold text-gray-800 mb-4">{t.friendSummary}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Object.entries(passengerSummary).map(([name, data]) => (
             <div key={name} className="bg-gray-50 rounded-lg p-4">
               <h4 className="font-semibold text-gray-800">{name}</h4>
               <div className="text-sm text-gray-600 space-y-1 mt-2">
-                <div>Total Distance: {data.total_distance.toFixed(1)} km</div>
-                <div>Total Cost: {data.total_cost.toFixed(0)} HUF</div>
-                <div>Trips: {data.trip_count}</div>
+                <div>{t.totalDistance}: {data.total_distance.toFixed(1)} km</div>
+                <div>{t.totalCostLabel}: {data.total_cost.toFixed(0)} HUF</div>
+                <div>{t.trips}: {data.trip_count}</div>
                 {data.unpaid_cost > 0 && (
                   <div className="text-red-600 font-medium">
-                    Unpaid: {data.unpaid_cost.toFixed(0)} HUF
+                    {t.unpaid}: {data.unpaid_cost.toFixed(0)} HUF
                   </div>
                 )}
               </div>
@@ -139,7 +160,7 @@ function UserInterface() {
 
       {/* Recent Trips */}
       <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-xl font-bold text-gray-800 mb-4">Recent Trips</h3>
+        <h3 className="text-xl font-bold text-gray-800 mb-4">{t.recentTrips}</h3>
         <div className="space-y-3">
           {trips.slice(0, 5).map((trip) => (
             <div key={trip.id} className="border rounded-lg p-4">
@@ -152,15 +173,15 @@ function UserInterface() {
                     {trip.distance_km.toFixed(1)} km • {trip.passengers.join(', ')}
                   </div>
                   <div className="text-sm text-gray-500">
-                    {trip.payment_method} • {new Date(trip.created_at).toLocaleDateString()}
+                    {trip.payment_method === 'card' ? t.card : t.cash} • {new Date(trip.created_at).toLocaleDateString()}
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="font-bold text-green-600">
-                    {trip.cost_per_person.toFixed(0)} HUF/person
+                    {trip.cost_per_person.toFixed(0)} HUF/{currentLang === 'hu' ? 'fő' : 'person'}
                   </div>
                   <div className="text-sm text-gray-500">
-                    Total: {trip.total_cost.toFixed(0)} HUF
+                    {t.totalCostLabel}: {trip.total_cost.toFixed(0)} HUF
                   </div>
                 </div>
               </div>
@@ -179,25 +200,50 @@ function UserInterface() {
             fetchPassengerSummary();
             setShowCreateTrip(false);
           }}
+          currentLang={currentLang}
+          t={t}
         />
       )}
     </div>
   );
 }
 
-function CreateTripModal({ settings, onClose, onTripCreated }) {
-  const [startAddress, setStartAddress] = useState('');
-  const [endAddress, setEndAddress] = useState('');
+function CreateTripModal({ settings, onClose, onTripCreated, currentLang, t }) {
+  const [startLocation, setStartLocation] = useState(null);
+  const [endLocation, setEndLocation] = useState(null);
   const [distance, setDistance] = useState('');
   const [passengers, setPassengers] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [loading, setLoading] = useState(false);
+  const [useMap, setUseMap] = useState(true);
+
+  const handleLocationUpdate = (type, data) => {
+    if (type === 'start') {
+      setStartLocation(data);
+    } else if (type === 'end') {
+      setEndLocation(data);
+    } else if (type === 'distance') {
+      setDistance(data.toFixed(1));
+    } else if (type === 'reset') {
+      setStartLocation(null);
+      setEndLocation(null);
+      setDistance('');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!startAddress || !endAddress || !distance) {
-      alert('Please fill in all required fields');
-      return;
+    
+    if (useMap) {
+      if (!startLocation || !endLocation || !distance) {
+        alert(t.fillAllFields);
+        return;
+      }
+    } else {
+      if (!distance) {
+        alert(t.fillAllFields);
+        return;
+      }
     }
 
     setLoading(true);
@@ -205,8 +251,8 @@ function CreateTripModal({ settings, onClose, onTripCreated }) {
       const passengerList = passengers.split(',').map(p => p.trim()).filter(p => p);
       
       const tripData = {
-        start_location: { address: startAddress, lat: 0, lng: 0 },
-        end_location: { address: endAddress, lat: 0, lng: 0 },
+        start_location: startLocation || { address: 'Manual entry', lat: 0, lng: 0 },
+        end_location: endLocation || { address: 'Manual entry', lat: 0, lng: 0 },
         distance_km: parseFloat(distance),
         passengers: passengerList,
         payment_method: paymentMethod
@@ -221,27 +267,27 @@ function CreateTripModal({ settings, onClose, onTripCreated }) {
       if (response.ok) {
         onTripCreated();
       } else {
-        alert('Error creating trip');
+        alert(t.errorCreatingTrip);
       }
     } catch (error) {
       console.error('Error creating trip:', error);
-      alert('Error creating trip');
+      alert(t.errorCreatingTrip);
     } finally {
       setLoading(false);
     }
   };
 
   const estimatedCost = distance && settings ? 
-    (parseFloat(distance) * settings.rate_per_km).toFixed(2) : '0.00';
+    (parseFloat(distance) * settings.rate_per_km).toFixed(0) : '0';
   
   const passengerCount = passengers.split(',').filter(p => p.trim()).length || 1;
-  const costPerPerson = estimatedCost > 0 ? (parseFloat(estimatedCost) / passengerCount).toFixed(2) : '0.00';
+  const costPerPerson = estimatedCost > 0 ? (parseFloat(estimatedCost) / passengerCount).toFixed(0) : '0';
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl max-w-md w-full p-6">
+      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-gray-800">Create New Trip</h3>
+          <h3 className="text-xl font-bold text-gray-800">{t.createNewTrip}</h3>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 text-2xl"
@@ -251,37 +297,72 @@ function CreateTripModal({ settings, onClose, onTripCreated }) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              From *
+          {/* Map Toggle */}
+          <div className="flex items-center space-x-4 mb-4">
+            <label className="flex items-center space-x-2">
+              <input
+                type="radio"
+                checked={useMap}
+                onChange={() => setUseMap(true)}
+                className="text-blue-600"
+              />
+              <span className="text-sm font-medium">{t.selectOnMap}</span>
             </label>
-            <input
-              type="text"
-              value={startAddress}
-              onChange={(e) => setStartAddress(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Start location"
-              required
-            />
+            <label className="flex items-center space-x-2">
+              <input
+                type="radio"
+                checked={!useMap}
+                onChange={() => setUseMap(false)}
+                className="text-blue-600"
+              />
+              <span className="text-sm font-medium">Manual</span>
+            </label>
           </div>
+
+          {useMap ? (
+            // Map Selection
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t.selectOnMap}
+              </label>
+              <MapSelector
+                startLocation={startLocation}
+                endLocation={endLocation}
+                onLocationUpdate={handleLocationUpdate}
+                translations={translations}
+                currentLang={currentLang}
+              />
+            </div>
+          ) : (
+            // Manual Entry
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t.from}
+                </label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={t.from}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t.to}
+                </label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={t.to}
+                />
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              To *
-            </label>
-            <input
-              type="text"
-              value={endAddress}
-              onChange={(e) => setEndAddress(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="End location"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Distance (km) *
+              {t.distance} *
             </label>
             <input
               type="number"
@@ -289,46 +370,46 @@ function CreateTripModal({ settings, onClose, onTripCreated }) {
               value={distance}
               onChange={(e) => setDistance(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Distance in kilometers"
+              placeholder={t.distance}
               required
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Passengers
+              {t.passengers}
             </label>
             <input
               type="text"
               value={passengers}
               onChange={(e) => setPassengers(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="John, Jane, Bob (comma separated)"
+              placeholder="János, Petra, Béla (vesszővel elválasztva)"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Payment Method
+              {t.paymentMethod}
             </label>
             <select
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="cash">Cash</option>
-              <option value="card">Card</option>
+              <option value="cash">{t.cash}</option>
+              <option value="card">{t.card}</option>
             </select>
           </div>
 
           {/* Cost Preview */}
           <div className="bg-blue-50 rounded-lg p-3">
             <div className="text-sm text-gray-600">
-              <div>Total Cost: {estimatedCost} HUF</div>
-              <div>Cost per person: {costPerPerson} HUF</div>
+              <div>{t.totalCost}: {estimatedCost} HUF</div>
+              <div>{t.costPerPerson}: {costPerPerson} HUF</div>
               {paymentMethod === 'card' && settings && (
                 <div className="mt-2 text-xs text-blue-600">
-                  Payment Info: {settings.payment_info}
+                  {t.paymentInfo}: {settings.payment_info}
                 </div>
               )}
             </div>
@@ -340,14 +421,14 @@ function CreateTripModal({ settings, onClose, onTripCreated }) {
               onClick={onClose}
               className="flex-1 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
             >
-              Cancel
+              {t.cancel}
             </button>
             <button
               type="submit"
               disabled={loading}
               className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
-              {loading ? 'Creating...' : 'Create Trip'}
+              {loading ? t.creating : t.createTrip}
             </button>
           </div>
         </form>
@@ -356,7 +437,7 @@ function CreateTripModal({ settings, onClose, onTripCreated }) {
   );
 }
 
-function AdminInterface({ isAuthenticated, setIsAuthenticated }) {
+function AdminInterface({ isAuthenticated, setIsAuthenticated, currentLang, t }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -373,11 +454,11 @@ function AdminInterface({ isAuthenticated, setIsAuthenticated }) {
       if (response.ok) {
         setIsAuthenticated(true);
       } else {
-        alert('Invalid password');
+        alert(t.invalidPassword);
       }
     } catch (error) {
       console.error('Login error:', error);
-      alert('Login error');
+      alert(t.loginError);
     } finally {
       setLoading(false);
     }
@@ -387,11 +468,11 @@ function AdminInterface({ isAuthenticated, setIsAuthenticated }) {
     return (
       <div className="max-w-md mx-auto">
         <div className="bg-white rounded-xl shadow-lg p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Admin Login</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">{t.adminLogin}</h2>
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password
+                {t.password}
               </label>
               <input
                 type="password"
@@ -406,7 +487,7 @@ function AdminInterface({ isAuthenticated, setIsAuthenticated }) {
               disabled={loading}
               className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
-              {loading ? 'Logging in...' : 'Login'}
+              {loading ? t.loggingIn : t.login}
             </button>
           </form>
         </div>
@@ -414,10 +495,10 @@ function AdminInterface({ isAuthenticated, setIsAuthenticated }) {
     );
   }
 
-  return <AdminDashboard setIsAuthenticated={setIsAuthenticated} />;
+  return <AdminDashboard setIsAuthenticated={setIsAuthenticated} currentLang={currentLang} t={t} />;
 }
 
-function AdminDashboard({ setIsAuthenticated }) {
+function AdminDashboard({ setIsAuthenticated, currentLang, t }) {
   const [settings, setSettings] = useState(null);
   const [trips, setTrips] = useState([]);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -469,9 +550,9 @@ function AdminDashboard({ setIsAuthenticated }) {
       <div className="bg-white rounded-xl shadow-lg p-6">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">Admin Dashboard</h2>
+            <h2 className="text-2xl font-bold text-gray-800">{t.adminDashboard}</h2>
             <p className="text-gray-600 mt-1">
-              Current rate: {settings?.rate_per_km || 0} HUF/km
+              {t.currentRate}: {settings?.rate_per_km || 0} HUF/km
             </p>
           </div>
           <div className="flex space-x-3">
@@ -479,13 +560,13 @@ function AdminDashboard({ setIsAuthenticated }) {
               onClick={() => setShowSettingsModal(true)}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Settings
+              {t.settings}
             </button>
             <button
               onClick={() => setIsAuthenticated(false)}
               className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
             >
-              Logout
+              {t.logout}
             </button>
           </div>
         </div>
@@ -493,7 +574,7 @@ function AdminDashboard({ setIsAuthenticated }) {
 
       {/* All Trips */}
       <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-xl font-bold text-gray-800 mb-4">All Trips</h3>
+        <h3 className="text-xl font-bold text-gray-800 mb-4">{t.allTrips}</h3>
         <div className="space-y-3">
           {trips.map((trip) => (
             <div key={trip.id} className="border rounded-lg p-4">
@@ -506,15 +587,15 @@ function AdminDashboard({ setIsAuthenticated }) {
                     {trip.distance_km.toFixed(1)} km • {trip.passengers.join(', ')}
                   </div>
                   <div className="text-sm text-gray-500">
-                    {trip.payment_method} • {new Date(trip.created_at).toLocaleDateString()}
+                    {trip.payment_method === 'card' ? t.card : t.cash} • {new Date(trip.created_at).toLocaleDateString()}
                   </div>
                 </div>
                 <div className="text-right mr-4">
                   <div className="font-bold text-green-600">
-                    {trip.cost_per_person.toFixed(0)} HUF/person
+                    {trip.cost_per_person.toFixed(0)} HUF/{currentLang === 'hu' ? 'fő' : 'person'}
                   </div>
                   <div className="text-sm text-gray-500">
-                    Total: {trip.total_cost.toFixed(0)} HUF
+                    {t.totalCostLabel}: {trip.total_cost.toFixed(0)} HUF
                   </div>
                 </div>
                 <button
@@ -525,7 +606,7 @@ function AdminDashboard({ setIsAuthenticated }) {
                       : 'bg-red-100 text-red-800 hover:bg-red-200'
                   }`}
                 >
-                  {trip.paid ? 'Paid' : 'Unpaid'}
+                  {trip.paid ? t.paid : t.unpaidStatus}
                 </button>
               </div>
             </div>
@@ -542,13 +623,15 @@ function AdminDashboard({ setIsAuthenticated }) {
             fetchSettings();
             setShowSettingsModal(false);
           }}
+          currentLang={currentLang}
+          t={t}
         />
       )}
     </div>
   );
 }
 
-function SettingsModal({ settings, onClose, onSettingsUpdated }) {
+function SettingsModal({ settings, onClose, onSettingsUpdated, currentLang, t }) {
   const [ratePerKm, setRatePerKm] = useState(settings?.rate_per_km || 0);
   const [paymentInfo, setPaymentInfo] = useState(settings?.payment_info || '');
   const [adminPassword, setAdminPassword] = useState('');
@@ -571,11 +654,11 @@ function SettingsModal({ settings, onClose, onSettingsUpdated }) {
       if (response.ok) {
         onSettingsUpdated();
       } else {
-        alert('Error updating settings');
+        alert(t.errorUpdatingSettings);
       }
     } catch (error) {
       console.error('Error updating settings:', error);
-      alert('Error updating settings');
+      alert(t.errorUpdatingSettings);
     } finally {
       setLoading(false);
     }
@@ -585,7 +668,7 @@ function SettingsModal({ settings, onClose, onSettingsUpdated }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl max-w-md w-full p-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-gray-800">Admin Settings</h3>
+          <h3 className="text-xl font-bold text-gray-800">{t.adminSettings}</h3>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 text-2xl"
@@ -597,7 +680,7 @@ function SettingsModal({ settings, onClose, onSettingsUpdated }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Rate per Kilometer (HUF)
+              {t.ratePerKm}
             </label>
             <input
               type="number"
@@ -611,27 +694,27 @@ function SettingsModal({ settings, onClose, onSettingsUpdated }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Payment Information
+              {t.paymentInformation}
             </label>
             <textarea
               value={paymentInfo}
               onChange={(e) => setPaymentInfo(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 h-20"
-              placeholder="Card: 1234-5678-9012-3456 | Bank: Your Name"
+              placeholder="Kártya: 1234-5678-9012-3456 | Bank: Your Name"
               required
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              New Admin Password (leave blank to keep current)
+              {t.newAdminPassword}
             </label>
             <input
               type="password"
               value={adminPassword}
               onChange={(e) => setAdminPassword(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2"
-              placeholder="Leave blank to keep current password"
+              placeholder={t.leaveBlank}
             />
           </div>
 
@@ -641,14 +724,14 @@ function SettingsModal({ settings, onClose, onSettingsUpdated }) {
               onClick={onClose}
               className="flex-1 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
             >
-              Cancel
+              {t.cancel}
             </button>
             <button
               type="submit"
               disabled={loading}
               className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
-              {loading ? 'Saving...' : 'Save Settings'}
+              {loading ? t.saving : t.save}
             </button>
           </div>
         </form>
