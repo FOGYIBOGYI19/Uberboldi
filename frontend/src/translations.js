@@ -130,6 +130,8 @@ export const translations = {
     allTrips: "All Trips",
     paid: "Paid",
     unpaidStatus: "Unpaid",
+    delete: "Delete",
+    confirmDelete: "Are you sure you want to delete this trip?",
     
     // Settings
     adminSettings: "Admin Settings",
