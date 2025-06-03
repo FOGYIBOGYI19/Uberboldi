@@ -103,7 +103,7 @@ function UserInterface() {
           <div>
             <h2 className="text-2xl font-bold text-gray-800">Plan Your Trip</h2>
             <p className="text-gray-600 mt-1">
-              Current rate: ${settings?.rate_per_km || 0}/km
+              Current rate: {settings?.rate_per_km || 0} HUF/km
             </p>
           </div>
           <button
