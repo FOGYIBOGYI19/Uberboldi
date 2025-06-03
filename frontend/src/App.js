@@ -471,7 +471,7 @@ function AdminDashboard({ setIsAuthenticated }) {
           <div>
             <h2 className="text-2xl font-bold text-gray-800">Admin Dashboard</h2>
             <p className="text-gray-600 mt-1">
-              Current rate: ${settings?.rate_per_km || 0}/km
+              Current rate: {settings?.rate_per_km || 0} HUF/km
             </p>
           </div>
           <div className="flex space-x-3">
