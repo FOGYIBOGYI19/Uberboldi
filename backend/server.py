@@ -55,8 +55,8 @@ async def startup_event():
     if not settings:
         db.admin_settings.insert_one({
             "_id": "main",
-            "rate_per_km": 0.5,  # Default rate
-            "payment_info": "Card: 1234-5678-9012-3456 | Bank: John Doe",
+            "rate_per_km": 150,  # Default rate in HUF
+            "payment_info": "Card: 1234-5678-9012-3456 | Bank: Your Name",
             "admin_password": "admin123"
         })
 
