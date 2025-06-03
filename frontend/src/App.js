@@ -699,16 +699,24 @@ function AdminDashboard({ setIsAuthenticated, currentLang, t }) {
                     {t.totalCostLabel}: {trip.total_cost.toFixed(0)} HUF
                   </div>
                 </div>
-                <button
-                  onClick={() => toggleTripPaid(trip.id, trip.paid)}
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    trip.paid 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800 hover:bg-red-200'
-                  }`}
-                >
-                  {trip.paid ? t.paid : t.unpaidStatus}
-                </button>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => toggleTripPaid(trip.id, trip.paid)}
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      trip.paid 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800 hover:bg-red-200'
+                    }`}
+                  >
+                    {trip.paid ? t.paid : t.unpaidStatus}
+                  </button>
+                  <button
+                    onClick={() => deleteTrip(trip.id)}
+                    className="px-3 py-1 rounded-full text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors"
+                  >
+                    {t.delete}
+                  </button>
+                </div>
               </div>
             </div>
           ))}
