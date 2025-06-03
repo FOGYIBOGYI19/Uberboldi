@@ -104,6 +104,16 @@ async def delete_trip(trip_id: str):
         return {"message": "Trip deleted successfully"}
     raise HTTPException(status_code=404, detail="Trip not found")
 
+@app.put("/api/admin/trip/{trip_id}/paid")
+async def mark_trip_paid(trip_id: str, paid: dict):
+    result = db.trips.update_one(
+        {"id": trip_id},
+        {"$set": {"paid": paid["paid"]}}
+    )
+    if result.modified_count:
+        return {"message": "Trip payment status updated"}
+    raise HTTPException(status_code=404, detail="Trip not found")
+
 # User endpoints
 @app.get("/api/settings")
 async def get_public_settings():
