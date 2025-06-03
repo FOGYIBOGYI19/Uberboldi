@@ -578,24 +578,6 @@ function AdminDashboard({ setIsAuthenticated, currentLang, t }) {
     }
   };
 
-  const deleteTrip = async (tripId) => {
-    if (window.confirm(t.confirmDelete)) {
-      try {
-        const response = await fetch(`${BACKEND_URL}/api/admin/trip/${tripId}`, {
-          method: 'DELETE'
-        });
-
-        if (response.ok) {
-          fetchTrips();
-        } else {
-          alert('Error deleting trip');
-        }
-      } catch (error) {
-        console.error('Error deleting trip:', error);
-        alert('Error deleting trip');
-      }
-    }
-  };
 
   return (
     <div className="space-y-6">
