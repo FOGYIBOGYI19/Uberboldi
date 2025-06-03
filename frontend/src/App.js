@@ -124,11 +124,11 @@ function UserInterface() {
               <h4 className="font-semibold text-gray-800">{name}</h4>
               <div className="text-sm text-gray-600 space-y-1 mt-2">
                 <div>Total Distance: {data.total_distance.toFixed(1)} km</div>
-                <div>Total Cost: ${data.total_cost.toFixed(2)}</div>
+                <div>Total Cost: {data.total_cost.toFixed(0)} HUF</div>
                 <div>Trips: {data.trip_count}</div>
                 {data.unpaid_cost > 0 && (
                   <div className="text-red-600 font-medium">
-                    Unpaid: ${data.unpaid_cost.toFixed(2)}
+                    Unpaid: {data.unpaid_cost.toFixed(0)} HUF
                   </div>
                 )}
               </div>
